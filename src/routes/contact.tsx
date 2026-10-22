@@ -92,7 +92,7 @@ function ContactPage() {
               <p aria-live="polite" className="mt-4 text-sm text-muted-foreground">
                 {status === "sent" && "Thank you — your message has been sent. We will be in touch shortly."}
                 {status === "error" && (
-                  <>Sorry, your message could not be sent. Please email us at <a href="mailto:info@bluesignpr.com" className="text-primary underline">info@bluesignpr.com</a>.</>
+                  <>Sorry, your message could not be sent. Please email us at <a href="mailto:ceo@bluesignpr.com" className="text-primary underline">ceo@bluesignpr.com</a>.</>
                 )}
               </p>
             </div>

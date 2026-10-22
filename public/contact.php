@@ -2,7 +2,7 @@
 // Contact form handler: receives the form from /contact and emails it.
 declare(strict_types=1);
 
-const MAIL_TO = 'info@bluesignpr.com';
+const MAIL_TO = 'ceo@bluesignpr.com';
 const MAIL_FROM = 'noreply@bluesignpr.com';
 const MAIL_FROM_NAME = 'Blue Sign PR Website';
 const RATE_LIMIT = 5;        // max messages per IP...
