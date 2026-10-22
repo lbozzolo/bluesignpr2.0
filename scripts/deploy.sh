@@ -4,8 +4,10 @@
 #   npm run deploy:test   -> https://test.bluesignpr.com
 #   npm run deploy:prod   -> https://bluesignpr.com (asks for confirmation, backs up first)
 #
-# Requires passwordless SSH (key) access as root. Override the host with
-# DEPLOY_HOST=user@host and the port with DEPLOY_PORT=2222 if needed.
+# Requires passwordless SSH (key) access as root. Root is only used to log in:
+# every remote command and file write runs as the site owner via runuser, so
+# root never operates on files the cPanel account controls.
+# Override the host with DEPLOY_HOST=user@host and the port with DEPLOY_PORT=2222.
 set -euo pipefail
 
 TARGET="${1:-}"
@@ -36,10 +38,13 @@ EXCLUDES=(
 )
 
 SSH=(ssh -p "$PORT" -o BatchMode=yes -o ConnectTimeout=10)
+AS_OWNER="runuser -u $OWNER --"
+# Run a shell script (read from stdin) on the server as the site owner.
+remote() { "${SSH[@]}" "$HOST" "$AS_OWNER bash -s"; }
 cd "$(dirname "$0")/.."
 
 echo "→ Checking SSH access to ${HOST}…"
-if ! "${SSH[@]}" "$HOST" "test -d '$DEST'"; then
+if ! remote <<<"test -d '$DEST'"; then
   echo "✗ Cannot reach $HOST or $DEST does not exist." >&2
   echo "  If SSH asks for a password, authorize your key once with: ssh-copy-id -p $PORT $HOST" >&2
   exit 1
@@ -48,7 +53,7 @@ fi
 if [[ "$TARGET" == "prod" ]]; then
   # The first switch from the old PHP site is done by hand; after that the
   # marker file exists and regular deploys are allowed.
-  if ! "${SSH[@]}" "$HOST" "test -f '$DEST/.bluesign-deployed'"; then
+  if ! remote <<<"test -f '$DEST/.bluesign-deployed'"; then
     echo "✗ Production has not been migrated from the old site yet (no .bluesign-deployed marker)." >&2
     exit 1
   fi
@@ -64,23 +69,23 @@ test -f dist/client/index.html || { echo "✗ Build produced no index.html" >&2;
 if [[ "$TARGET" == "prod" ]]; then
   STAMP="$(date +%Y%m%d-%H%M%S)"
   echo "→ Backing up production to $HOME_DIR/backups/site-${STAMP}.tar.gz…"
-  "${SSH[@]}" "$HOST" "mkdir -p '$HOME_DIR/backups' && chmod 700 '$HOME_DIR/backups' \
-    && tar -czf '$HOME_DIR/backups/site-$STAMP.tar.gz' -C '$DEST' --exclude ./test.bluesignpr.com . \
-    && ls -1t '$HOME_DIR'/backups/site-*.tar.gz | tail -n +11 | xargs -r rm --"
+  remote <<EOF
+set -e
+mkdir -p '$HOME_DIR/backups' && chmod 700 '$HOME_DIR/backups'
+tar -czf '$HOME_DIR/backups/site-$STAMP.tar.gz' -C '$DEST' --exclude ./test.bluesignpr.com .
+# Keep the 10 most recent backups.
+find '$HOME_DIR/backups' -maxdepth 1 -type f -name 'site-*.tar.gz' -printf '%T@ %p\n' \
+  | sort -rn | tail -n +11 | cut -d' ' -f2- | xargs -r -d '\n' rm -f --
+EOF
 fi
 
 echo "→ Uploading to ${DEST}…"
+# The remote rsync runs as the site owner, so files are owned by it directly.
+RSYNC=(rsync -rlz -e "ssh -p $PORT -o BatchMode=yes" --rsync-path="$AS_OWNER rsync")
 # Pages, images and PHP: add/update only, so nothing else in the folder is touched.
-rsync -rlz -e "ssh -p $PORT" "${EXCLUDES[@]}" dist/client/ "$HOST:$DEST/"
+"${RSYNC[@]}" "${EXCLUDES[@]}" dist/client/ "$HOST:$DEST/"
 # Hashed JS/CSS bundles: mirror exactly so old builds don't pile up.
-rsync -rlz --delete -e "ssh -p $PORT" dist/client/assets/ "$HOST:$DEST/assets/"
-
-echo "→ Fixing ownership and permissions…"
-# Only the entries this deploy uploaded; the rest of the folder is left alone.
-DEPLOYED=$(cd dist/client && ls -A | grep -vxE '\.htaccess|1-dark\.jpg|1-dark\.webp' | tr '\n' ' ')
-"${SSH[@]}" "$HOST" "cd '$DEST' && chown -R $OWNER:$OWNER $DEPLOYED \
-  && find $DEPLOYED -type d -exec chmod 755 {} + \
-  && find $DEPLOYED -type f -exec chmod 644 {} +"
+"${RSYNC[@]}" --delete dist/client/assets/ "$HOST:$DEST/assets/"
 
 echo "→ Checking ${URL}…"
 status="$(curl -s -o /dev/null -w '%{http_code}' "$URL/")"
