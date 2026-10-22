@@ -1,0 +1,251 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-navy: var(--navy);
+  --color-navy-deep: var(--navy-deep);
+  --color-navy-soft: var(--navy-soft);
+  --color-silver: var(--silver);
+  --color-silver-line: var(--silver-line);
+  --color-ivory: var(--ivory);
+  --color-on-navy-muted: var(--on-navy-muted);
+}
+
+:root {
+  --radius: 0.25rem;
+  /* #0F2F54 */
+  --navy: oklch(0.3 0.075 253);
+  --navy-deep: oklch(0.2 0.055 255);
+  --navy-soft: oklch(0.42 0.07 252);
+  --silver: oklch(0.86 0.008 250);
+  --silver-line: oklch(0.78 0.012 250 / 45%);
+  --ivory: oklch(0.975 0.005 85);
+  --on-navy-muted: oklch(0.8 0.02 250);
+
+  --background: oklch(0.99 0.002 250);
+  --foreground: oklch(0.22 0.04 255);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+  --primary: var(--navy);
+  --primary-foreground: oklch(0.98 0.004 250);
+  --secondary: oklch(0.955 0.006 250);
+  --secondary-foreground: var(--navy);
+  --muted: oklch(0.955 0.006 250);
+  --muted-foreground: oklch(0.5 0.025 255);
+  --accent: oklch(0.94 0.01 250);
+  --accent-foreground: var(--navy);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.9 0.008 250);
+  --input: oklch(0.88 0.01 250);
+  --ring: var(--navy-soft);
+
+  --gradient-silver: linear-gradient(
+    135deg,
+    oklch(0.95 0.004 250) 0%,
+    oklch(0.78 0.012 250) 35%,
+    oklch(0.97 0.003 250) 55%,
+    oklch(0.72 0.015 250) 100%
+  );
+  --gradient-navy: linear-gradient(160deg, var(--navy) 0%, var(--navy-deep) 100%);
+  --gradient-veil: linear-gradient(
+    180deg,
+    oklch(0.2 0.055 255 / 55%) 0%,
+    oklch(0.3 0.075 253 / 35%) 45%,
+    oklch(0.16 0.05 255 / 92%) 100%
+  );
+  --shadow-elegant: 0 18px 40px -22px oklch(0.2 0.055 255 / 55%);
+  --shadow-card: 0 30px 60px -35px oklch(0.2 0.055 255 / 45%);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Glass reflection sweep on hover */
+@utility glass-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    background-color 0.4s ease,
+    border-color 0.4s ease,
+    transform 0.4s ease,
+    box-shadow 0.4s ease;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    background: linear-gradient(
+      115deg,
+      transparent 30%,
+      oklch(1 0 0 / 0.45) 48%,
+      oklch(1 0 0 / 0.12) 55%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+  &:hover::after {
+    transform: translateX(120%);
+  }
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@utility bg-silver {
+  background-image: var(--gradient-silver);
+}
+@utility bg-navy-gradient {
+  background-image: var(--gradient-navy);
+}
+@utility bg-veil {
+  background-image: var(--gradient-veil);
+}
+@utility shadow-elegant {
+  box-shadow: var(--shadow-elegant);
+}
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+@utility text-silver {
+  background-image: var(--gradient-silver);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: silver-drift 8s ease-in-out infinite;
+}
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+@utility silver-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--silver), transparent);
+}
+@utility grain {
+  background-image: radial-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px);
+  background-size: 3px 3px;
+}
+
+@keyframes silver-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+@keyframes slow-zoom {
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@utility animate-slow-zoom {
+  animation: slow-zoom 24s ease-out forwards;
+}
+@utility animate-rise {
+  animation: rise 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@utility animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  *,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
