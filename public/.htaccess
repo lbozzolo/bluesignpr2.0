@@ -1,0 +1,24 @@
+# BEGIN Blue Sign PR
+Options -Indexes
+DirectoryIndex index.html index.php
+ErrorDocument 404 /404.html
+
+AddType image/webp .webp
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Hashed build files never change: cache for a year.
+  <If "%{REQUEST_URI} =~ m#^/assets/#">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </If>
+  <ElseIf "%{REQUEST_URI} =~ m#\.(webp|png|jpe?g|svg|ico)$#">
+    Header set Cache-Control "public, max-age=2592000"
+  </ElseIf>
+  <ElseIf "%{REQUEST_URI} =~ m#(\.html|/)$#">
+    Header set Cache-Control "no-cache"
+  </ElseIf>
+</IfModule>
+# END Blue Sign PR

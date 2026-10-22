@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as R404RouteImport } from './routes/404'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FeesRouteImport } from './routes/fees'
 import { Route as ServicesRouteImport } from './routes/services'
@@ -18,6 +19,11 @@ import { Route as TeamRouteImport } from './routes/team'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R404Route = R404RouteImport.update({
+  id: '/404',
+  path: '/404',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -43,6 +49,7 @@ const TeamRoute = TeamRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/404': typeof R404Route
   '/contact': typeof ContactRoute
   '/fees': typeof FeesRoute
   '/services': typeof ServicesRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/404': typeof R404Route
   '/contact': typeof ContactRoute
   '/fees': typeof FeesRoute
   '/services': typeof ServicesRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/404': typeof R404Route
   '/contact': typeof ContactRoute
   '/fees': typeof FeesRoute
   '/services': typeof ServicesRoute
@@ -65,14 +74,15 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/contact' | '/fees' | '/services' | '/team'
+  fullPaths: '/' | '/404' | '/contact' | '/fees' | '/services' | '/team'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/contact' | '/fees' | '/services' | '/team'
-  id: '__root__' | '/' | '/contact' | '/fees' | '/services' | '/team'
+  to: '/' | '/404' | '/contact' | '/fees' | '/services' | '/team'
+  id: '__root__' | '/' | '/404' | '/contact' | '/fees' | '/services' | '/team'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  R404Route: typeof R404Route
   ContactRoute: typeof ContactRoute
   FeesRoute: typeof FeesRoute
   ServicesRoute: typeof ServicesRoute
@@ -86,6 +96,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/404': {
+      id: '/404'
+      path: '/404'
+      fullPath: '/404'
+      preLoaderRoute: typeof R404RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -121,6 +138,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  R404Route: R404Route,
   ContactRoute: ContactRoute,
   FeesRoute: FeesRoute,
   ServicesRoute: ServicesRoute,

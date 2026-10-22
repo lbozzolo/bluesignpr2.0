@@ -13,6 +13,8 @@ export default defineConfig({
     server: { entry: "server" },
     // Static build for the VPS: render every page to HTML at build time.
     prerender: { enabled: true, crawlLinks: true, autoSubfolderIndex: true },
+    // Apache serves this as the ErrorDocument for unknown URLs.
+    pages: [{ path: "/404", prerender: { enabled: true, outputPath: "/404.html" } }],
   },
   // No serverless runtime: the site is served as plain files.
   nitro: false,
