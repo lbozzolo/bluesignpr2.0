@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Mail, MapPin, Phone } from "lucide-react";
+import { PHONE, SHOW_PHONE } from "@/lib/contact-info";
 
 export function SiteFooter() {
   return (
@@ -29,7 +30,9 @@ export function SiteFooter() {
             <p className="eyebrow text-silver">London Office</p>
             <ul className="mt-5 space-y-4 text-sm text-on-navy-muted">
               <li className="flex gap-3"><MapPin className="mt-0.5 size-4 shrink-0" />29 Howard Street, North Shields, Tyne & Wear NE30 1AR — UK</li>
-              <li className="flex gap-3"><Phone className="mt-0.5 size-4 shrink-0" /><a href="tel:+447361777177" className="hover:text-primary-foreground">+44 (0) 7361 777 177</a></li>
+              {SHOW_PHONE && (
+                <li className="flex gap-3"><Phone className="mt-0.5 size-4 shrink-0" /><a href={PHONE.href} className="hover:text-primary-foreground">{PHONE.display}</a></li>
+              )}
               <li className="flex gap-3"><Mail className="mt-0.5 size-4 shrink-0" /><a href="mailto:ceo@bluesignpr.com" className="hover:text-primary-foreground">ceo@bluesignpr.com</a></li>
             </ul>
           </div>

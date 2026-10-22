@@ -4,12 +4,13 @@ import { Mail, MapPin, Phone, MessageCircle } from "lucide-react";
 import { PageHero } from "@/components/site/PageHero";
 import { Reveal } from "@/components/site/Reveal";
 import { Button } from "@/components/ui/button";
+import { PHONE, SHOW_PHONE, WHATSAPP_URL } from "@/lib/contact-info";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
       { title: "Contact — Blue Sign PR" },
-      { name: "description", content: "Contact Blue Sign PR: 29 Howard Street, North Shields, UK. Phone +44 (0) 7361 777 177, email ceo@bluesignpr.com." },
+      { name: "description", content: `Contact Blue Sign PR: 29 Howard Street, North Shields, UK.${SHOW_PHONE ? ` Phone ${PHONE.display},` : ""} email ceo@bluesignpr.com.` },
       { property: "og:title", content: "Contact — Blue Sign PR" },
       { property: "og:description", content: "Do you have any question? Get in touch with our consultants." },
       { property: "og:type", content: "website" },
@@ -22,14 +23,32 @@ export const Route = createFileRoute("/contact")({
 const field =
   "w-full border-0 border-b border-input bg-transparent px-0 py-3 text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none transition-colors";
 
+const contactItems = [
+  { icon: MapPin, label: "Office", value: "29 Howard Street, North Shields\nTyne & Wear NE30 1AR — UK" },
+  { icon: Phone, label: "Phone", value: PHONE.display, href: PHONE.href, hidden: !SHOW_PHONE },
+  { icon: Mail, label: "Email", value: "ceo@bluesignpr.com", href: "mailto:ceo@bluesignpr.com" },
+  { icon: MessageCircle, label: "WhatsApp", value: "Message us directly", href: WHATSAPP_URL, hidden: !SHOW_PHONE },
+].filter((c) => !c.hidden);
+
+type Status = "idle" | "sending" | "sent" | "error";
+
 function ContactPage() {
-  const [sent, setSent] = useState(false);
-  const submit = (e: FormEvent<HTMLFormElement>) => {
+  const [status, setStatus] = useState<Status>("idle");
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    const body = `${f.get("message")}\n\n${f.get("name")} — ${f.get("email")}`;
-    window.location.href = `mailto:info@bluesignpr.com?subject=${encodeURIComponent(String(f.get("subject") || "Consultation request"))}&body=${encodeURIComponent(body)}`;
-    setSent(true);
+    const form = e.currentTarget;
+    setStatus("sending");
+    try {
+      // Handled by public/contact.php on the server.
+      const res = await fetch("/contact.php", { method: "POST", body: new FormData(form) });
+      const data = (await res.json().catch(() => null)) as { ok?: boolean } | null;
+      if (!res.ok || !data?.ok) throw new Error(`Contact form failed (${res.status})`);
+      form.reset();
+      setStatus("sent");
+    } catch (err) {
+      console.error(err);
+      setStatus("error");
+    }
   };
 
   return (
@@ -40,12 +59,7 @@ function ContactPage() {
 
       <section className="mx-auto grid max-w-7xl gap-16 px-6 py-28 lg:grid-cols-12 lg:px-10">
         <Reveal className="space-y-10 lg:col-span-5">
-          {[
-            { icon: MapPin, label: "Office", value: "29 Howard Street, North Shields\nTyne & Wear NE30 1AR — UK" },
-            { icon: Phone, label: "Phone", value: "+44 (0) 7361 777 177", href: "tel:+447361777177" },
-            { icon: Mail, label: "Email", value: "ceo@bluesignpr.com", href: "mailto:ceo@bluesignpr.com" },
-            { icon: MessageCircle, label: "WhatsApp", value: "Message us directly", href: "https://api.whatsapp.com/send?phone=447361777117" },
-          ].map((c) => (
+          {contactItems.map((c) => (
             <div key={c.label} className="flex gap-6">
               <span className="flex size-12 shrink-0 items-center justify-center border border-primary/20 text-primary">
                 <c.icon className="size-5" strokeWidth={1.3} />
@@ -69,9 +83,18 @@ function ContactPage() {
             <input name="email" type="email" required placeholder="Email address" className={field} />
             <input name="subject" placeholder="Subject" className={`${field} md:col-span-2`} />
             <textarea name="message" required rows={5} placeholder="How can we help you?" className={`${field} resize-none md:col-span-2`} />
+            {/* Honeypot: hidden from people, bots fill it in and get rejected. */}
+            <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-px w-px opacity-0" />
             <div className="md:col-span-2">
-              <Button type="submit" variant="navy" size="xl">Send message</Button>
-              {sent && <p className="mt-4 text-sm text-muted-foreground">Your email app has been opened to send the message.</p>}
+              <Button type="submit" variant="navy" size="xl" disabled={status === "sending"}>
+                {status === "sending" ? "Sending…" : "Send message"}
+              </Button>
+              <p aria-live="polite" className="mt-4 text-sm text-muted-foreground">
+                {status === "sent" && "Thank you — your message has been sent. We will be in touch shortly."}
+                {status === "error" && (
+                  <>Sorry, your message could not be sent. Please email us at <a href="mailto:info@bluesignpr.com" className="text-primary underline">info@bluesignpr.com</a>.</>
+                )}
+              </p>
             </div>
           </form>
         </Reveal>
